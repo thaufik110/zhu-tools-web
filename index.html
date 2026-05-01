@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhu-Tools | Multi-Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #60a5fa; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- NAVBAR -->
+    <nav class="glass-panel sticky top-0 z-50 shadow-lg">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-toolbox text-blue-500 text-2xl"></i>
+                <h1 class="text-xl font-black text-white tracking-wider uppercase">ZHU<span class="text-blue-500">-TOOLS</span></h1>
+            </div>
+            <div class="text-sm font-semibold text-slate-400">Powered by He Zhushi API</div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow max-w-3xl mx-auto w-full px-4 py-8">
+        
+        <!-- TABS -->
+        <div class="flex border-b border-slate-700 mb-8">
+            <button onclick="switchTab('tiktok')" id="tab-tiktok" class="flex-1 py-3 font-bold uppercase tracking-wider text-sm tab-active transition"><i class="fa-brands fa-tiktok mr-2"></i>TikTok DL</button>
+            <button onclick="switchTab('github')" id="tab-github" class="flex-1 py-3 font-bold uppercase tracking-wider text-sm text-slate-500 hover:text-slate-300 transition"><i class="fa-brands fa-github mr-2"></i>GH Stalker</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: TIKTOK DOWNLOADER -->
+        <!-- ========================================== -->
+        <div id="view-tiktok" class="block animate-fade-in">
+            <div class="glass-panel p-6 rounded-xl shadow-xl">
+                <h2 class="text-xl font-bold text-white mb-2">TikTok Downloader (No Watermark)</h2>
+                <p class="text-sm text-slate-400 mb-6">Download video TikTok resolusi HD beserta audionya.</p>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="tt-url" placeholder="https://vt.tiktok.com/..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                    <button onclick="downloadTikTok()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result TikTok -->
+            <div id="tt-loading" class="hidden text-center py-10 text-blue-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Memproses Video...</p></div>
+            <div id="tt-result" class="hidden mt-6 glass-panel rounded-xl overflow-hidden shadow-xl"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: GITHUB STALKER -->
+        <!-- ========================================== -->
+        <div id="view-github" class="hidden animate-fade-in">
+            <div class="glass-panel p-6 rounded-xl shadow-xl">
+                <h2 class="text-xl font-bold text-white mb-2">GitHub Account Stalker</h2>
+                <p class="text-sm text-slate-400 mb-6">Intip profil lengkap dari username GitHub mana saja.</p>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="gh-username" placeholder="Masukkan username (cth: torvalds)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+                    <button onclick="stalkGitHub()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result GitHub -->
+            <div id="gh-loading" class="hidden text-center py-10 text-blue-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i><p>Melacak Target...</p></div>
+            <div id="gh-result" class="hidden mt-6 glass-panel p-6 rounded-xl shadow-xl"></div>
+        </div>
+
+    </main>
+
+    <footer class="border-t border-slate-800 py-6 text-center text-slate-500 text-sm mt-auto">
+        &copy; 2026 He Zhushi Tools. All rights reserved.
+    </footer>
+
+    <script>
+        // TAUTAN API UTAMA ABANG DARI CLOUDFLARE TUNNEL
+        const API_BASE = "https://impacts-plate-reviewing-laid.trycloudflare.com";
+
+        function switchTab(tab) {
+            document.getElementById('view-tiktok').classList.add('hidden');
+            document.getElementById('view-github').classList.add('hidden');
+            document.getElementById('tab-tiktok').classList.remove('tab-active', 'text-blue-400');
+            document.getElementById('tab-github').classList.remove('tab-active', 'text-blue-400');
+            document.getElementById('tab-tiktok').classList.add('text-slate-500');
+            document.getElementById('tab-github').classList.add('text-slate-500');
+
+            document.getElementById('view-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).classList.add('tab-active', 'text-blue-400');
+            document.getElementById('tab-' + tab).classList.remove('text-slate-500');
+        }
+
+        // ==========================================
+        // FUNGSI TIKTOK DOWNLOADER
+        // ==========================================
+        async function downloadTikTok() {
+            const url = document.getElementById('tt-url').value;
+            if (!url) return alert("Masukkan URL TikTok!");
+
+            document.getElementById('tt-result').classList.add('hidden');
+            document.getElementById('tt-loading').classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/downloader/tiktok/download?url=${encodeURIComponent(url)}`);
+                const res = await response.json();
+
+                if (res.status !== 200) throw new Error(res.message || "Gagal mengambil data");
+
+                const data = res.data;
+                const resultDiv = document.getElementById('tt-result');
+                
+                resultDiv.innerHTML = `
+                    <div class="flex flex-col md:flex-row">
+                        <div class="md:w-1/2 bg-black flex items-center justify-center">
+                            <video controls class="max-h-[400px] w-full" poster="${data.media.thumbnail}">
+                                <source src="${data.media.no_watermark_hd}" type="video/mp4">
+                            </video>
+                        </div>
+                        <div class="md:w-1/2 p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center gap-3 mb-4">
+                                    <img src="${data.author.avatar}" class="w-12 h-12 rounded-full border-2 border-slate-700">
+                                    <div>
+                                        <h3 class="font-bold text-white">${data.author.nickname}</h3>
+                                        <p class="text-xs text-blue-400">${data.author.username}</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-slate-300 mb-4 line-clamp-3">${data.title}</p>
+                                <div class="grid grid-cols-2 gap-3 text-xs text-slate-400 mb-6 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                                    <div><i class="fa-solid fa-play text-slate-500 mr-1"></i> ${data.stats.play_count.toLocaleString()}</div>
+                                    <div><i class="fa-solid fa-heart text-red-500 mr-1"></i> ${data.stats.digg_count.toLocaleString()}</div>
+                                    <div><i class="fa-solid fa-comment text-slate-500 mr-1"></i> ${data.stats.comment_count.toLocaleString()}</div>
+                                    <div><i class="fa-solid fa-share text-blue-500 mr-1"></i> ${data.stats.share_count.toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <a href="${data.media.no_watermark_hd}" target="_blank" class="w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded transition"><i class="fa-solid fa-video mr-2"></i> Download Video HD</a>
+                                <a href="${data.music.url}" target="_blank" class="w-full text-center bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition"><i class="fa-solid fa-music mr-2"></i> Download Audio MP3</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('tt-loading').classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+            } catch (err) {
+                document.getElementById('tt-loading').classList.add('hidden');
+                alert(err.message || "Terjadi kesalahan saat memproses API");
+            }
+        }
+
+        // ==========================================
+        // FUNGSI GITHUB STALKER
+        // ==========================================
+        async function stalkGitHub() {
+            const username = document.getElementById('gh-username').value;
+            if (!username) return alert("Masukkan Username GitHub!");
+
+            document.getElementById('gh-result').classList.add('hidden');
+            document.getElementById('gh-loading').classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/stalker/github/stalk?username=${encodeURIComponent(username)}`);
+                const res = await response.json();
+
+                if (res.status !== 200) throw new Error(res.message || "Gagal mengambil data");
+
+                const data = res.data;
+                const resultDiv = document.getElementById('gh-result');
+                
+                resultDiv.innerHTML = `
+                    <div class="flex flex-col md:flex-row gap-6 items-start">
+                        <img src="${data.avatar}" class="w-32 h-32 rounded-full border-4 border-slate-700 shadow-xl">
+                        <div class="flex-1 w-full">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-white">${data.name}</h2>
+                                    <a href="${data.github_url}" target="_blank" class="text-blue-400 hover:text-blue-300">@${data.username}</a>
+                                </div>
+                                <span class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full border border-slate-700">${data.account_created}</span>
+                            </div>
+                            <p class="text-slate-400 mt-2 mb-4 text-sm">${data.bio}</p>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-300 mb-6">
+                                <div class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-slate-500 w-4"></i> ${data.location}</div>
+                                <div class="flex items-center gap-2"><i class="fa-solid fa-building text-slate-500 w-4"></i> ${data.company}</div>
+                                <div class="flex items-center gap-2"><i class="fa-solid fa-link text-slate-500 w-4"></i> <a href="${data.blog_website.startsWith('http') ? data.blog_website : 'https://'+data.blog_website}" target="_blank" class="text-blue-400 hover:underline line-clamp-1">${data.blog_website}</a></div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-center">
+                                <div>
+                                    <div class="text-xl font-bold text-white">${data.stats.public_repos}</div>
+                                    <div class="text-xs text-slate-500 uppercase tracking-wide">Repos</div>
+                                </div>
+                                <div>
+                                    <div class="text-xl font-bold text-white">${data.stats.followers}</div>
+                                    <div class="text-xs text-slate-500 uppercase tracking-wide">Followers</div>
+                                </div>
+                                <div>
+                                    <div class="text-xl font-bold text-white">${data.stats.following}</div>
+                                    <div class="text-xs text-slate-500 uppercase tracking-wide">Following</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('gh-loading').classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+            } catch (err) {
+                document.getElementById('gh-loading').classList.add('hidden');
+                alert(err.message || "Akun tidak ditemukan atau API Error");
+            }
+        }
+    </script>
+</body>
+</html>
